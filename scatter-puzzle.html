@@ -12,7 +12,7 @@
     --text:#f4f3fb;--text-dim:#a6a3bd;--amber:#ffb238;--teal:#37e0c4;--coral:#ff6b5e;--radius:18px;
   }
   *{box-sizing:border-box;}
-  html,body{height:100%;margin:0;}
+  html,body{height:100%;margin:0;overflow-x:hidden;}
   body{
     background:radial-gradient(1200px 700px at 15% -10%,rgba(255,178,56,0.10),transparent 60%),
                radial-gradient(1000px 700px at 110% 10%,rgba(55,224,196,0.10),transparent 55%),var(--ink);
@@ -22,29 +22,36 @@
   h1,h2,.display{font-family:'Space Grotesk',sans-serif;}
   .screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     padding:28px 20px 40px;width:100%;max-width:560px;margin:0 auto;}
-  .wordmark{display:flex;align-items:baseline;gap:10px;margin-bottom:36px;}
+  .screen.scroll{justify-content:flex-start;overflow-y:auto;}
+  .wordmark{display:flex;align-items:baseline;gap:10px;margin-bottom:28px;}
   .wordmark .piece{width:26px;height:26px;border-radius:7px;
     background:linear-gradient(135deg,var(--amber),var(--coral));transform:rotate(-8deg);flex-shrink:0;}
   .wordmark span{font-size:22px;font-weight:600;letter-spacing:-0.02em;color:var(--text-dim);}
-  .hero-title{font-size:44px;font-weight:700;line-height:1.05;letter-spacing:-0.02em;margin:0 0 12px;text-align:center;}
-  .hero-sub{color:var(--text-dim);font-size:16px;line-height:1.5;text-align:center;max-width:400px;margin:0 0 40px;}
+  .hero-title{font-size:40px;font-weight:700;line-height:1.05;letter-spacing:-0.02em;margin:0 0 12px;text-align:center;}
+  .hero-sub{color:var(--text-dim);font-size:16px;line-height:1.5;text-align:center;max-width:400px;margin:0 0 36px;}
   .stack{display:flex;flex-direction:column;gap:14px;width:100%;}
   button{font-family:inherit;cursor:pointer;border:none;outline:none;}
-  .btn{padding:18px 22px;border-radius:14px;font-size:16px;font-weight:600;
+  .btn{padding:16px 22px;border-radius:14px;font-size:16px;font-weight:600;
     display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .12s ease;}
   .btn:active{transform:scale(0.97);}
   .btn-primary{background:linear-gradient(135deg,var(--amber),var(--coral));color:#1a1408;}
   .btn-secondary{background:var(--paper-raised);color:var(--text);border:1px solid var(--line);}
   .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--line);}
+  .btn-teal{background:var(--teal);color:#04261f;}
   .btn:disabled{opacity:0.4;cursor:not-allowed;}
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:24px;width:100%;}
-  .field-label{font-size:13px;color:var(--text-dim);margin:22px 0 10px;font-weight:500;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:22px;width:100%;}
+  .field-label{font-size:13px;color:var(--text-dim);margin:20px 0 10px;font-weight:500;}
   .field-label:first-child{margin-top:0;}
   input[type=text]{width:100%;background:var(--paper-raised);border:1px solid var(--line);
     border-radius:12px;padding:16px;font-size:17px;color:var(--text);font-family:inherit;outline:none;}
   input[type=text]:focus{border-color:var(--teal);}
   input.code-input{text-transform:uppercase;letter-spacing:0.3em;text-align:center;
     font-size:26px;font-weight:600;font-family:'Space Grotesk',sans-serif;}
+  /* image picker */
+  .img-tabs{display:flex;gap:8px;margin-bottom:14px;}
+  .img-tab{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:600;
+    background:var(--paper-raised);color:var(--text-dim);border:1px solid var(--line);text-align:center;cursor:pointer;}
+  .img-tab.active{background:var(--paper);color:var(--text);border-color:var(--teal);}
   .img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   .img-option{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;
     border:2px solid transparent;background-size:cover;background-position:center;cursor:pointer;}
@@ -52,64 +59,100 @@
   .img-option.selected::after{content:"✓";position:absolute;top:6px;right:6px;
     width:22px;height:22px;background:var(--amber);color:#1a1408;border-radius:50%;
     font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .upload-zone{border:2px dashed var(--line);border-radius:12px;padding:28px 16px;
+    text-align:center;cursor:pointer;transition:border-color .2s;}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--teal);}
+  .upload-zone .icon{font-size:32px;margin-bottom:8px;}
+  .upload-zone .label{font-size:14px;color:var(--text-dim);}
+  .upload-preview{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;
+    border:2px solid var(--amber);background-size:cover;background-position:center;}
+  .upload-preview .remove-btn{position:absolute;top:8px;right:8px;
+    background:rgba(18,17,26,0.8);color:#fff;border:none;border-radius:50%;
+    width:28px;height:28px;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  /* size picker */
   .size-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-  .size-opt{padding:16px 8px;border-radius:12px;background:var(--paper-raised);
+  .size-opt{padding:14px 8px;border-radius:12px;background:var(--paper-raised);
     border:2px solid transparent;text-align:center;cursor:pointer;}
   .size-opt.selected{border-color:var(--teal);}
   .size-opt .n{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;}
   .size-opt .l{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  /* host join toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
+    background:var(--paper-raised);border-radius:12px;border:1px solid var(--line);}
+  .toggle-info .tl{font-size:14px;font-weight:600;}
+  .toggle-info .ts{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  .toggle{position:relative;width:44px;height:26px;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;inset:0;background:var(--paper);border:1px solid var(--line);
+    border-radius:13px;cursor:pointer;transition:.2s;}
+  .toggle-slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;
+    background:var(--text-dim);border-radius:50%;transition:.2s;}
+  input:checked+.toggle-slider{background:var(--teal);border-color:var(--teal);}
+  input:checked+.toggle-slider::before{transform:translateX(18px);background:#04261f;}
+  /* host name input (conditionally shown) */
+  .host-name-row{margin-top:10px;}
+  /* errors */
   .err{background:rgba(255,107,94,0.12);border:1px solid rgba(255,107,94,0.35);color:#ffb4ac;
     padding:14px 16px;border-radius:12px;font-size:14px;margin-top:14px;line-height:1.4;}
-  .code-display{font-family:'Space Grotesk',sans-serif;font-size:56px;font-weight:700;
+  /* lobby */
+  .code-display{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:700;
     letter-spacing:0.12em;text-align:center;margin:6px 0 4px;
     background:linear-gradient(135deg,var(--amber),var(--coral));
     -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
-  .code-hint{text-align:center;color:var(--text-dim);font-size:14px;margin-bottom:28px;}
-  .lobby-title{font-size:14px;color:var(--text-dim);font-weight:500;letter-spacing:0.04em;}
-  .lobby-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .code-hint{text-align:center;color:var(--text-dim);font-size:14px;margin-bottom:24px;}
+  .lobby-label{font-size:13px;color:var(--text-dim);font-weight:500;letter-spacing:0.04em;}
+  .lobby-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
   .piece-count{font-size:13px;color:var(--teal);font-weight:600;}
-  .player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin:14px 0 4px;}
-  .player-chip{background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center;}
-  .player-chip .num{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#04261f;
-    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;}
-  .player-chip .nm{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .slot-empty{border:1px dashed var(--line);border-radius:12px;padding:12px 8px;
-    text-align:center;color:var(--text-dim);font-size:12px;}
-  .preview-wrap{margin-top:22px;border-radius:14px;overflow:hidden;border:1px solid var(--line);}
+  .player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin:10px 0 4px;}
+  .player-chip{background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;}
+  .player-chip .num{width:24px;height:24px;border-radius:50%;background:var(--teal);color:#04261f;
+    font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;}
+  .player-chip .num.host-num{background:var(--amber);}
+  .player-chip .nm{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .slot-empty{border:1px dashed var(--line);border-radius:12px;padding:10px 6px;
+    text-align:center;color:var(--text-dim);font-size:11px;}
+  .preview-wrap{margin-top:18px;border-radius:14px;overflow:hidden;border:1px solid var(--line);}
   .preview-img{width:100%;aspect-ratio:1;background-size:cover;background-position:center;
     display:block;position:relative;}
   .grid-overlay{position:absolute;inset:0;display:grid;}
   .grid-cell{border:1px solid rgba(0,0,0,0.35);display:flex;align-items:flex-end;justify-content:flex-start;}
   .grid-cell.claimed{background:rgba(55,224,196,0.22);}
+  .grid-cell.host-cell{background:rgba(255,178,56,0.22);}
   .grid-cell .tag{background:rgba(18,17,26,0.8);color:#fff;font-size:10px;padding:2px 5px;
     margin:3px;border-radius:4px;max-width:calc(100% - 6px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .foot-actions{margin-top:22px;display:flex;flex-direction:column;gap:10px;width:100%;}
+  .foot-actions{margin-top:18px;display:flex;flex-direction:column;gap:10px;width:100%;}
+  /* waiting */
   .waiting-pulse{width:14px;height:14px;border-radius:50%;background:var(--teal);animation:pulse 1.4s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(0.75);}}
-  .waiting-row{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:6px;}
+  .waiting-row{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:10px;}
+  /* piece view */
   .piece-full{position:fixed;inset:0;display:flex;flex-direction:column;}
   .piece-canvas{flex:1;background-repeat:no-repeat;position:relative;}
   .piece-hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
-    align-items:center;padding:16px;background:linear-gradient(to bottom,rgba(0,0,0,0.55),transparent);}
+    align-items:center;padding:14px 16px;background:linear-gradient(to bottom,rgba(0,0,0,0.6),transparent);}
   .hud-chip{background:rgba(18,17,26,0.75);backdrop-filter:blur(6px);padding:8px 14px;
-    border-radius:20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;border:none;color:#fff;}
+    border-radius:20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;border:none;color:#fff;cursor:pointer;}
   .hud-num{width:20px;height:20px;border-radius:50%;background:var(--amber);color:#1a1408;
     font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
-  .peek-btn{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
-    background:rgba(18,17,26,0.85);backdrop-filter:blur(6px);color:#fff;
-    padding:14px 22px;border-radius:30px;font-size:14px;font-weight:600;
-    border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:8px;z-index:20;}
+  .bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:14px 16px 28px;
+    display:flex;gap:10px;background:linear-gradient(to top,rgba(0,0,0,0.7) 60%,transparent);}
+  .bottom-bar .btn{flex:1;padding:14px;}
   .peek-overlay{position:fixed;inset:0;background:rgba(10,10,15,0.92);
     display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:18px;z-index:30;}
   .peek-img{width:min(80vw,340px);aspect-ratio:1;background-size:cover;background-position:center;
     border-radius:14px;border:1px solid var(--line);}
+  /* misc */
   .back-link{background:none;border:none;color:var(--text-dim);font-size:14px;
-    display:flex;align-items:center;gap:6px;cursor:pointer;padding:0;margin-bottom:20px;align-self:flex-start;}
-  .small-note{font-size:12px;color:var(--text-dim);text-align:center;margin-top:16px;line-height:1.5;}
+    display:flex;align-items:center;gap:6px;cursor:pointer;padding:0;margin-bottom:18px;align-self:flex-start;}
+  .small-note{font-size:12px;color:var(--text-dim);text-align:center;margin-top:14px;line-height:1.5;}
   .center-note{text-align:center;color:var(--text-dim);font-size:15px;line-height:1.6;}
   .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);
     border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
+  .fs-btn{position:fixed;top:14px;right:14px;z-index:100;
+    background:rgba(18,17,26,0.7);backdrop-filter:blur(6px);
+    color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:10px;
+    padding:8px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;}
 </style>
 </head>
 <body>
@@ -117,7 +160,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, update, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBZQf_9ATpQZ0yZM2G-vipdsGp48vVFBOc",
@@ -153,8 +196,14 @@ let S = {
   roomCode: null,
   playerId: null,
   playerName: '',
+  // setup state
+  imgTab: 'preset',          // 'preset' | 'upload'
   selectedImage: PRESET_IMAGES[0],
+  uploadedDataUrl: null,     // base64 data URL from file upload
   selectedSize: SIZE_OPTIONS[1],
+  hostJoins: true,           // host plays as a piece
+  hostName: '',
+  // join state
   joinCode: '',
   joinName: '',
   error: null,
@@ -163,59 +212,82 @@ let S = {
 };
 let roomListener = null;
 
+// ---- helpers ----
 function genCode(){ let c=''; for(let i=0;i<4;i++) c+=CHARS[Math.floor(Math.random()*CHARS.length)]; return c; }
-
 function stopListener(){ if(roomListener){ roomListener(); roomListener=null; } }
-
-function listenRoom(code, cb){
+function listenRoom(code,cb){
   stopListener();
-  const r = ref(db, `rooms/${code}`);
-  roomListener = onValue(r, snap=>{ if(snap.exists()) cb(snap.val()); });
+  roomListener = onValue(ref(db,`rooms/${code}`), snap=>{ if(snap.exists()) cb(snap.val()); });
 }
 
-function render(){
-  const app = document.getElementById('app');
-  app.innerHTML = '';
-  app.appendChild(Views[S.view]());
+// ---- fullscreen ----
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    (document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen||
+     document.documentElement.mozRequestFullScreen).call(document.documentElement);
+  } else {
+    (document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen).call(document);
+  }
 }
+function isFullscreen(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
 
-function el(tag, attrs, children){
-  const e = document.createElement(tag);
-  attrs = attrs||{};
-  children = children||[];
+// ---- tiny DOM builder ----
+function el(tag,attrs,children){
+  const e=document.createElement(tag);
+  attrs=attrs||{}; children=children||[];
   for(const k in attrs){
     if(k==='class') e.className=attrs[k];
     else if(k==='text') e.textContent=attrs[k];
-    else if(k==='html') e.innerHTML=attrs[k];
     else if(k==='style') e.style.cssText=attrs[k];
-    else if(k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]);
-    else e.setAttribute(k, attrs[k]);
+    else if(k.startsWith('on')) e.addEventListener(k.slice(2),attrs[k]);
+    else e.setAttribute(k,attrs[k]);
   }
   (Array.isArray(children)?children:[children]).forEach(c=>{
     if(c==null) return;
-    if(typeof c==='string') e.appendChild(document.createTextNode(c));
-    else e.appendChild(c);
+    typeof c==='string'?e.appendChild(document.createTextNode(c)):e.appendChild(c);
   });
   return e;
 }
 
 function wordmark(){
-  return el('div',{class:'wordmark'},[
-    el('div',{class:'piece'}),
-    el('span',{text:'Scatter'})
-  ]);
+  return el('div',{class:'wordmark'},[el('div',{class:'piece'}),el('span',{text:'Scatter'})]);
+}
+function fsBtn(){
+  return el('button',{class:'fs-btn',onclick:toggleFullscreen},[isFullscreen()?'⤓ Exit fullscreen':'⛶ Fullscreen']);
+}
+
+function render(){
+  const app=document.getElementById('app');
+  app.innerHTML='';
+  app.appendChild(Views[S.view]());
+}
+
+// ---- image helpers ----
+function currentImageUrl(){
+  return S.imgTab==='upload' && S.uploadedDataUrl ? S.uploadedDataUrl : S.selectedImage.url;
+}
+
+function handleFileUpload(file){
+  if(!file||!file.type.startsWith('image/')) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    S.uploadedDataUrl=e.target.result;
+    S.imgTab='upload';
+    render();
+  };
+  reader.readAsDataURL(file);
 }
 
 // ---- VIEWS ----
-
 const Views = {
   home(){
-    const w = el('div',{class:'screen'});
+    const w=el('div',{class:'screen'});
+    w.appendChild(fsBtn());
     w.appendChild(wordmark());
     w.appendChild(el('h1',{class:'hero-title',text:'Turn your phones into one big puzzle.'}));
     w.appendChild(el('p',{class:'hero-sub',text:'One picture, split across every screen. Line up the devices to bring it together.'}));
-    const s = el('div',{class:'stack'});
-    s.appendChild(el('button',{class:'btn btn-primary', onclick(){S.view='hostSetup';S.error=null;render();}},['🧩 Host a game']));
+    const s=el('div',{class:'stack'});
+    s.appendChild(el('button',{class:'btn btn-primary',onclick(){S.view='hostSetup';S.error=null;render();}},['🧩 Host a game']));
     s.appendChild(el('button',{class:'btn btn-secondary',onclick(){S.view='join';S.error=null;render();}},['📱 Join a game']));
     w.appendChild(s);
     w.appendChild(el('p',{class:'small-note',text:'Everyone needs their own phone or tablet. Works best with 4 or more people in the same room.'}));
@@ -223,42 +295,92 @@ const Views = {
   },
 
   hostSetup(){
-    const w = el('div',{class:'screen'});
+    const w=el('div',{class:'screen scroll'});
+    w.appendChild(fsBtn());
     w.appendChild(el('button',{class:'back-link',onclick(){S.view='home';render();}},['← Back']));
     w.appendChild(wordmark());
     w.appendChild(el('h1',{class:'hero-title',text:'Set up the puzzle'}));
-    const card = el('div',{class:'card'});
+    const card=el('div',{class:'card'});
 
+    // image tabs
     card.appendChild(el('div',{class:'field-label',text:'Choose a picture'}));
-    const grid = el('div',{class:'img-grid'});
-    PRESET_IMAGES.forEach(img=>{
-      grid.appendChild(el('div',{
-        class:'img-option'+(S.selectedImage.id===img.id?' selected':''),
-        style:`background-image:url(${img.url})`,
-        onclick(){S.selectedImage=img;render();}
-      }));
-    });
-    card.appendChild(grid);
+    const tabs=el('div',{class:'img-tabs'});
+    const presetTab=el('div',{class:'img-tab'+(S.imgTab==='preset'?' active':''),text:'Presets',onclick(){S.imgTab='preset';render();}});
+    const uploadTab=el('div',{class:'img-tab'+(S.imgTab==='upload'?' active':''),text:'Upload your own',onclick(){S.imgTab='upload';render();}});
+    tabs.appendChild(presetTab); tabs.appendChild(uploadTab);
+    card.appendChild(tabs);
 
+    if(S.imgTab==='preset'){
+      const grid=el('div',{class:'img-grid'});
+      PRESET_IMAGES.forEach(img=>{
+        grid.appendChild(el('div',{
+          class:'img-option'+(S.selectedImage.id===img.id&&S.imgTab==='preset'?' selected':''),
+          style:`background-image:url(${img.url})`,
+          onclick(){S.selectedImage=img;S.imgTab='preset';render();}
+        }));
+      });
+      card.appendChild(grid);
+    } else {
+      if(S.uploadedDataUrl){
+        const prev=el('div',{class:'upload-preview',style:`background-image:url(${S.uploadedDataUrl})`});
+        prev.appendChild(el('button',{class:'remove-btn',onclick(e){e.stopPropagation();S.uploadedDataUrl=null;render();}},['×']));
+        card.appendChild(prev);
+      } else {
+        const zone=el('div',{class:'upload-zone'});
+        zone.appendChild(el('div',{class:'icon',text:'🖼️'}));
+        zone.appendChild(el('div',{class:'label',text:'Tap to choose a photo from your device'}));
+        const fileInput=el('input',{type:'file',accept:'image/*',style:'display:none'});
+        fileInput.addEventListener('change',e=>handleFileUpload(e.target.files[0]));
+        zone.appendChild(fileInput);
+        zone.addEventListener('click',()=>fileInput.click());
+        zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag');});
+        zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
+        zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag');handleFileUpload(e.dataTransfer.files[0]);});
+        card.appendChild(zone);
+      }
+    }
+
+    // grid size
     card.appendChild(el('div',{class:'field-label',text:'How many players?'}));
-    const szRow = el('div',{class:'size-row'});
+    const szRow=el('div',{class:'size-row'});
     SIZE_OPTIONS.forEach(sz=>{
       szRow.appendChild(el('div',{
         class:'size-opt'+(S.selectedSize.rows===sz.rows?' selected':''),
         onclick(){S.selectedSize=sz;render();}
-      },[
-        el('div',{class:'n',text:`${sz.rows}×${sz.cols}`}),
-        el('div',{class:'l',text:sz.label}),
-      ]));
+      },[el('div',{class:'n',text:`${sz.rows}×${sz.cols}`}),el('div',{class:'l',text:sz.label})]));
     });
     card.appendChild(szRow);
-    w.appendChild(card);
 
+    // host joins toggle
+    card.appendChild(el('div',{class:'field-label',text:'Host participation'}));
+    const toggleRow=el('div',{class:'toggle-row'});
+    const toggleInfo=el('div',{class:'toggle-info'});
+    toggleInfo.appendChild(el('div',{class:'tl',text:'Play as a piece'}));
+    toggleInfo.appendChild(el('div',{class:'ts',text:'Host holds piece #1 of the puzzle'}));
+    const toggleWrap=el('label',{class:'toggle'});
+    const toggleInput=el('input',{type:'checkbox'});
+    if(S.hostJoins) toggleInput.checked=true;
+    toggleInput.addEventListener('change',e=>{S.hostJoins=e.target.checked;render();});
+    toggleWrap.appendChild(toggleInput);
+    toggleWrap.appendChild(el('span',{class:'toggle-slider'}));
+    toggleRow.appendChild(toggleInfo);
+    toggleRow.appendChild(toggleWrap);
+    card.appendChild(toggleRow);
+
+    if(S.hostJoins){
+      const hnRow=el('div',{class:'host-name-row'});
+      const hn=el('input',{type:'text',placeholder:'Your name (host)',value:S.hostName});
+      hn.addEventListener('input',e=>{S.hostName=e.target.value;});
+      hnRow.appendChild(hn);
+      card.appendChild(hnRow);
+    }
+
+    w.appendChild(card);
     if(S.error) w.appendChild(el('div',{class:'err'},['⚠️  '+S.error]));
 
-    const foot = el('div',{class:'foot-actions'});
-    const btn = el('button',{class:'btn btn-primary',onclick: handleCreateRoom},[
-      S.busy ? el('span',{class:'spinner'}) : null, S.busy?'Creating room…':'Create room'
+    const foot=el('div',{class:'foot-actions'});
+    const btn=el('button',{class:'btn btn-primary',onclick:handleCreateRoom},[
+      S.busy?el('span',{class:'spinner'}):null, S.busy?'Creating room…':'Create room'
     ]);
     if(S.busy) btn.disabled=true;
     foot.appendChild(btn);
@@ -267,28 +389,29 @@ const Views = {
   },
 
   hostLobby(){
-    const w = el('div',{class:'screen'});
-    w.appendChild(el('div',{class:'lobby-title',text:'ROOM CODE — SHARE WITH PLAYERS'}));
+    const w=el('div',{class:'screen scroll'});
+    w.appendChild(fsBtn());
+    w.appendChild(el('div',{class:'lobby-label',text:'ROOM CODE — SHARE WITH PLAYERS'}));
     w.appendChild(el('div',{class:'code-display',text:S.roomCode}));
-    w.appendChild(el('div',{class:'code-hint',text:'Players open this same link and enter this code.'}));
+    w.appendChild(el('div',{class:'code-hint',text:'Players open this same file and enter this code.'}));
 
-    const room = S.room;
-    const total = room.rows * room.cols;
-    const players = Object.values(room.players||{});
-    const joined = players.length;
+    const room=S.room;
+    const total=room.rows*room.cols;
+    const players=Object.values(room.players||{});
+    const joined=players.length;
 
-    const card = el('div',{class:'card'});
+    const card=el('div',{class:'card'});
     card.appendChild(el('div',{class:'lobby-header'},[
-      el('div',{class:'lobby-title',text:'PLAYERS'}),
+      el('div',{class:'lobby-label',text:'PLAYERS'}),
       el('div',{class:'piece-count',text:`${joined} / ${total} pieces claimed`}),
     ]));
-    const pg = el('div',{class:'player-grid'});
+    const pg=el('div',{class:'player-grid'});
     for(let i=0;i<total;i++){
-      const p = players.find(p=>p.pieceIndex===i);
+      const p=players.find(p=>p.pieceIndex===i);
       if(p){
         pg.appendChild(el('div',{class:'player-chip'},[
-          el('div',{class:'num',text:String(i+1)}),
-          el('div',{class:'nm',text:p.name}),
+          el('div',{class:'num'+(p.isHost?' host-num':''),text:String(i+1)}),
+          el('div',{class:'nm',text:p.name+(p.isHost?' 👑':'')}),
         ]));
       } else {
         pg.appendChild(el('div',{class:'slot-empty'},['Piece '+(i+1),el('br'),el('span',{text:'waiting…'})]));
@@ -297,78 +420,77 @@ const Views = {
     card.appendChild(pg);
     w.appendChild(card);
 
-    const pw = el('div',{class:'preview-wrap'});
-    const pi = el('div',{class:'preview-img',style:`background-image:url(${room.imageUrl})`});
-    const ov = el('div',{class:'grid-overlay',style:`grid-template-columns:repeat(${room.cols},1fr);grid-template-rows:repeat(${room.rows},1fr);`});
+    const pw=el('div',{class:'preview-wrap'});
+    const pi=el('div',{class:'preview-img',style:`background-image:url(${room.imageUrl})`});
+    const ov=el('div',{class:'grid-overlay',style:`grid-template-columns:repeat(${room.cols},1fr);grid-template-rows:repeat(${room.rows},1fr);`});
     for(let i=0;i<total;i++){
-      const p = players.find(p=>p.pieceIndex===i);
-      const cell = el('div',{class:'grid-cell'+(p?' claimed':'')});
-      if(p) cell.appendChild(el('div',{class:'tag',text:p.name}));
+      const p=players.find(p=>p.pieceIndex===i);
+      const cell=el('div',{class:'grid-cell'+(p?(p.isHost?' host-cell':' claimed'):'')});
+      if(p) cell.appendChild(el('div',{class:'tag',text:p.name+(p.isHost?' 👑':'')}));
       ov.appendChild(cell);
     }
     pi.appendChild(ov); pw.appendChild(pi); w.appendChild(pw);
     if(S.error) w.appendChild(el('div',{class:'err'},['⚠️  '+S.error]));
 
-    const foot = el('div',{class:'foot-actions'});
-    const startBtn = el('button',{class:'btn btn-primary',onclick:handleStartGame},[
+    const foot=el('div',{class:'foot-actions'});
+    const startBtn=el('button',{class:'btn btn-primary',onclick:handleStartGame},[
       joined===0?'Waiting for players…':`Start game (${joined} playing)`
     ]);
     if(joined===0) startBtn.disabled=true;
     foot.appendChild(startBtn);
-    foot.appendChild(el('button',{class:'btn btn-ghost',onclick(){stopListener();S.view='home';S.room=null;S.roomCode=null;render();}},['Cancel this room']));
+    foot.appendChild(el('button',{class:'btn btn-ghost',onclick(){stopListener();S.view='home';S.room=null;S.roomCode=null;render();}},['Cancel room']));
     w.appendChild(foot);
     return w;
   },
 
   hostGame(){
-    const room = S.room;
-    const total = room.rows * room.cols;
-    const players = Object.values(room.players||{});
-    const w = el('div',{class:'screen'});
-    w.appendChild(el('div',{class:'lobby-title',text:'GAME IN PROGRESS'}));
-    w.appendChild(el('h1',{class:'hero-title',style:'font-size:28px;',text:'Match the pieces!'}));
-    w.appendChild(el('p',{class:'hero-sub',text:'Everyone is holding one piece. Have them line up their screens to rebuild the picture below.'}));
-
-    const pw = el('div',{class:'preview-wrap'});
-    const pi = el('div',{class:'preview-img',style:`background-image:url(${room.imageUrl})`});
-    const ov = el('div',{class:'grid-overlay',style:`grid-template-columns:repeat(${room.cols},1fr);grid-template-rows:repeat(${room.rows},1fr);`});
+    // Host is playing as a piece — show piece view
+    if(S.playerId) return Views.playing();
+    // Host not playing — show overview
+    const room=S.room;
+    const total=room.rows*room.cols;
+    const players=Object.values(room.players||{});
+    const w=el('div',{class:'screen'});
+    w.appendChild(fsBtn());
+    w.appendChild(el('div',{class:'lobby-label',text:'GAME IN PROGRESS'}));
+    w.appendChild(el('h1',{class:'hero-title',style:'font-size:26px;',text:'Match the pieces!'}));
+    w.appendChild(el('p',{class:'hero-sub',text:'Everyone holds one piece — line up screens to rebuild the picture.'}));
+    const pw=el('div',{class:'preview-wrap'});
+    const pi=el('div',{class:'preview-img',style:`background-image:url(${room.imageUrl})`});
+    const ov=el('div',{class:'grid-overlay',style:`grid-template-columns:repeat(${room.cols},1fr);grid-template-rows:repeat(${room.rows},1fr);`});
     for(let i=0;i<total;i++){
-      const p = players.find(p=>p.pieceIndex===i);
-      const cell = el('div',{class:'grid-cell claimed'});
+      const p=players.find(p=>p.pieceIndex===i);
+      const cell=el('div',{class:'grid-cell claimed'});
       if(p) cell.appendChild(el('div',{class:'tag',text:`${i+1} · ${p.name}`}));
       ov.appendChild(cell);
     }
     pi.appendChild(ov); pw.appendChild(pi); w.appendChild(pw);
-
-    const foot = el('div',{class:'foot-actions'});
-    foot.appendChild(el('button',{class:'btn btn-secondary',onclick(){stopListener();S.view='hostSetup';S.error=null;S.room=null;S.roomCode=null;render();}},['🔄 New puzzle']));
-    foot.appendChild(el('button',{class:'btn btn-ghost',onclick(){stopListener();S.view='home';S.room=null;S.roomCode=null;render();}},['End game']));
+    const foot=el('div',{class:'foot-actions'});
+    foot.appendChild(el('button',{class:'btn btn-secondary',onclick(){stopListener();S.view='hostSetup';S.error=null;S.room=null;S.roomCode=null;S.playerId=null;render();}},['🔄 New puzzle']));
+    foot.appendChild(el('button',{class:'btn btn-ghost',onclick(){stopListener();S.view='home';S.room=null;S.roomCode=null;S.playerId=null;render();}},['End game']));
     w.appendChild(foot);
     return w;
   },
 
   join(){
-    const w = el('div',{class:'screen'});
+    const w=el('div',{class:'screen'});
+    w.appendChild(fsBtn());
     w.appendChild(el('button',{class:'back-link',onclick(){S.view='home';S.error=null;render();}},['← Back']));
     w.appendChild(wordmark());
     w.appendChild(el('h1',{class:'hero-title',text:'Join a game'}));
-    const card = el('div',{class:'card'});
-
+    const card=el('div',{class:'card'});
     card.appendChild(el('div',{class:'field-label',text:'Room code'}));
-    const ci = el('input',{type:'text',class:'code-input',maxlength:'4',placeholder:'XXXX',value:S.joinCode});
+    const ci=el('input',{type:'text',class:'code-input',maxlength:'4',placeholder:'XXXX',value:S.joinCode});
     ci.addEventListener('input',e=>{S.joinCode=e.target.value.toUpperCase();});
     card.appendChild(ci);
-
     card.appendChild(el('div',{class:'field-label',text:'Your name'}));
-    const ni = el('input',{type:'text',placeholder:'e.g. Sam',value:S.joinName});
+    const ni=el('input',{type:'text',placeholder:'e.g. Sam',value:S.joinName});
     ni.addEventListener('input',e=>{S.joinName=e.target.value;});
     card.appendChild(ni);
     w.appendChild(card);
-
     if(S.error) w.appendChild(el('div',{class:'err'},['⚠️  '+S.error]));
-
-    const foot = el('div',{class:'foot-actions'});
-    const btn = el('button',{class:'btn btn-primary',onclick:handleJoinRoom},[
+    const foot=el('div',{class:'foot-actions'});
+    const btn=el('button',{class:'btn btn-primary',onclick:handleJoinRoom},[
       S.busy?el('span',{class:'spinner'}):null, S.busy?'Joining…':'Join room'
     ]);
     if(S.busy) btn.disabled=true;
@@ -378,52 +500,61 @@ const Views = {
   },
 
   waiting(){
-    const w = el('div',{class:'screen'});
+    const w=el('div',{class:'screen'});
+    w.appendChild(fsBtn());
     w.appendChild(wordmark());
-    const room = S.room;
-    const players = Object.values(room.players||{});
-    const me = players.find(p=>p.id===S.playerId);
+    const players=Object.values((S.room&&S.room.players)||{});
+    const me=players.find(p=>p.id===S.playerId);
     w.appendChild(el('h1',{class:'hero-title',style:'font-size:30px;',text:`You are piece ${me?me.pieceIndex+1:'?'}`}));
     w.appendChild(el('p',{class:'center-note',text:`Waiting for the host to start the game in room ${S.roomCode}.`}));
     w.appendChild(el('div',{class:'waiting-row'},[
       el('div',{class:'waiting-pulse'}),
       el('span',{style:'color:var(--text-dim);font-size:14px;',text:'Watching for host…'})
     ]));
-    const foot = el('div',{class:'foot-actions',style:'margin-top:36px;'});
+    const foot=el('div',{class:'foot-actions',style:'margin-top:36px;'});
     foot.appendChild(el('button',{class:'btn btn-ghost',onclick(){stopListener();S.view='home';S.room=null;S.roomCode=null;render();}},['Leave room']));
     w.appendChild(foot);
     return w;
   },
 
   playing(){
-    const room = S.room;
-    const players = Object.values(room.players||{});
-    const me = players.find(p=>p.id===S.playerId);
-    const idx = me.pieceIndex;
-    const row = Math.floor(idx/room.cols);
-    const col = idx % room.cols;
-    const posX = room.cols>1?(col*100/(room.cols-1)):50;
-    const posY = room.rows>1?(row*100/(room.rows-1)):50;
-    const bgW = room.cols*100;
-    const bgH = room.rows*100;
+    const room=S.room;
+    const players=Object.values(room.players||{});
+    const me=players.find(p=>p.id===S.playerId);
+    if(!me) return Views.waiting();
+    const idx=me.pieceIndex;
+    const row=Math.floor(idx/room.cols);
+    const col=idx%room.cols;
+    const posX=room.cols>1?(col*100/(room.cols-1)):50;
+    const posY=room.rows>1?(row*100/(room.rows-1)):50;
+    const bgW=room.cols*100;
+    const bgH=room.rows*100;
 
-    const w = el('div',{class:'piece-full'});
-    const canvas = el('div',{
+    const w=el('div',{class:'piece-full'});
+    const canvas=el('div',{
       class:'piece-canvas',
       style:`background-image:url(${room.imageUrl});background-size:${bgW}% ${bgH}%;background-position:${posX}% ${posY}%;`
     });
     canvas.appendChild(el('div',{class:'piece-hud'},[
       el('div',{class:'hud-chip'},[
         el('div',{class:'hud-num',text:String(idx+1)}),
-        el('span',{text:me.name}),
+        el('span',{text:me.name+(me.isHost?' 👑':'')}),
       ]),
-      el('button',{class:'hud-chip',onclick(){stopListener();S.view='home';S.room=null;S.roomCode=null;render();}},['Leave']),
+      el('button',{class:'hud-chip',onclick:toggleFullscreen},[isFullscreen()?'⤓':'⛶',' ',isFullscreen()?'Exit':'Fullscreen']),
     ]));
     w.appendChild(canvas);
-    w.appendChild(el('button',{class:'peek-btn',onclick(){S.showPeek=true;render();}},['👁  Peek at full picture']));
+
+    const bar=el('div',{class:'bottom-bar'});
+    bar.appendChild(el('button',{class:'btn btn-secondary',onclick(){S.showPeek=true;render();}},['👁  Peek']));
+    bar.appendChild(el('button',{class:'btn btn-ghost',onclick(){
+      stopListener();S.playerId=null;
+      S.view=S.room&&S.room.hostId===me.id?'hostGame':'home';
+      S.room=null;S.roomCode=null;render();
+    }},['Leave']));
+    w.appendChild(bar);
 
     if(S.showPeek){
-      const ov = el('div',{class:'peek-overlay',onclick(){S.showPeek=false;render();}});
+      const ov=el('div',{class:'peek-overlay',onclick(){S.showPeek=false;render();}});
       ov.appendChild(el('div',{class:'peek-img',style:`background-image:url(${room.imageUrl})`}));
       ov.appendChild(el('div',{style:'color:var(--text-dim);font-size:13px;',text:'Tap anywhere to close'}));
       w.appendChild(ov);
@@ -436,32 +567,46 @@ const Views = {
 
 async function handleCreateRoom(){
   S.error=null; S.busy=true; render();
+  const imgUrl=currentImageUrl();
+  if(!imgUrl){
+    S.busy=false; S.error='Please select or upload a picture first.'; render(); return;
+  }
+  if(S.hostJoins && !S.hostName.trim()){
+    S.busy=false; S.error='Enter your name to play as a piece.'; render(); return;
+  }
   try{
     let code=genCode(), attempts=0;
     while(attempts<5){
-      const snap = await get(ref(db,`rooms/${code}`));
+      const snap=await get(ref(db,`rooms/${code}`));
       if(!snap.exists()) break;
       code=genCode(); attempts++;
     }
-    const room = {
-      code, imageUrl:S.selectedImage.url,
+    const hostId = S.hostJoins ? 'p_host_'+Math.random().toString(36).slice(2,8) : null;
+    const room={
+      code, imageUrl:imgUrl,
       rows:S.selectedSize.rows, cols:S.selectedSize.cols,
-      players:{}, status:'lobby', createdAt:Date.now()
+      players:{}, status:'lobby', createdAt:Date.now(),
+      hostId: hostId||null
     };
-    await set(ref(db,`rooms/${code}`), room);
-    S.room=room; S.roomCode=code; S.busy=false; S.view='hostLobby';
+    // Host claims piece 0 if joining
+    if(S.hostJoins && hostId){
+      room.players[hostId]={id:hostId,name:S.hostName.trim(),pieceIndex:0,isHost:true};
+    }
+    await set(ref(db,`rooms/${code}`),room);
+    S.room=room; S.roomCode=code;
+    S.playerId=hostId;
+    S.playerName=S.hostJoins?S.hostName.trim():'';
+    S.busy=false; S.view='hostLobby';
     render();
-    listenRoom(code, fresh=>{
+    listenRoom(code,fresh=>{
       S.room=fresh;
       if(S.view==='hostLobby'||S.view==='hostGame'){
-        S.view = fresh.status==='started'?'hostGame':'hostLobby';
+        S.view=fresh.status==='started'?'hostGame':'hostLobby';
         render();
       }
     });
   }catch(e){
-    S.busy=false;
-    S.error='Could not create the room: '+e.message;
-    render();
+    S.busy=false; S.error='Could not create the room: '+e.message; render();
   }
 }
 
@@ -482,32 +627,33 @@ async function handleJoinRoom(){
   if(!name){S.error='Enter your name so others can see it.';render();return;}
   S.busy=true; render();
   try{
-    const snap = await get(ref(db,`rooms/${code}`));
+    const snap=await get(ref(db,`rooms/${code}`));
     if(!snap.exists()){
-      S.busy=false; S.error=`No room found for code ${code}. Double-check with the host.`;render();return;
+      S.busy=false; S.error=`No room found for code ${code}. Double-check with the host.`; render(); return;
     }
-    const room = snap.val();
-    const players = Object.values(room.players||{});
-    const total = room.rows*room.cols;
+    const room=snap.val();
+    const players=Object.values(room.players||{});
+    const total=room.rows*room.cols;
     if(players.length>=total){S.busy=false;S.error='This room is full — every piece is claimed.';render();return;}
     if(room.status==='started'){S.busy=false;S.error='This game already started. Ask the host for a new room.';render();return;}
     const playerId='p_'+Math.random().toString(36).slice(2,10);
     const pieceIndex=players.length;
-    const playerData={id:playerId,name,pieceIndex};
-    await set(ref(db,`rooms/${code}/players/${playerId}`),playerData);
+    await set(ref(db,`rooms/${code}/players/${playerId}`),{id:playerId,name,pieceIndex});
     S.room=room; S.roomCode=code; S.playerId=playerId; S.playerName=name; S.busy=false; S.view='waiting';
     render();
-    listenRoom(code, fresh=>{
+    listenRoom(code,fresh=>{
       S.room=fresh;
-      if(fresh.status==='started'&&S.view==='waiting'){
-        S.view='playing';
-      }
+      if(fresh.status==='started'&&(S.view==='waiting')) S.view='playing';
       render();
     });
   }catch(e){
     S.busy=false; S.error='Could not join: '+e.message; render();
   }
 }
+
+// re-render fullscreen button state on change
+document.addEventListener('fullscreenchange',render);
+document.addEventListener('webkitfullscreenchange',render);
 
 render();
 </script>
