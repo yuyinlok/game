@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Piece Together</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg: #1B1830;
+    --bg-raised: #272148;
+    --bg-raised-2: #322A5C;
+    --ink: #F5F3FF;
+    --ink-dim: #B8B1DE;
+    --amber: #FFB020;
+    --amber-ink: #201200;
+    --mint: #4ADE80;
+    --coral: #FF6B6B;
+    --line: rgba(245,243,255,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    margin:0;
+  }
+  button{
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+    border:none;
+  }
+  input{
+    font-family:'Inter',sans-serif;
+  }
+  ::selection{background:var(--amber);color:var(--amber-ink);}
+  :focus-visible{outline:2px solid var(--mint); outline-offset:2px;}
+
+  .screen{
+    display:none;
+    min-height:100vh;
+    width:100%;
+  }
+  .screen.active{display:flex; flex-direction:column;}
+
+  /* ---------- shared bits ---------- */
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    width:100%;
+    padding:28px 20px 40px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px;
+  }
+  .back-btn{
+    background:none;
+    color:var(--ink-dim);
+    font-size:15px;
+    padding:6px 4px;
+  }
+  .back-btn:hover{color:var(--ink);}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:16px 24px;
+    border-radius:14px;
+    font-size:17px;
+    font-weight:600;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--amber); color:var(--amber-ink);}
+  .btn-primary:hover{box-shadow:0 6px 20px rgba(255,176,32,0.35);}
+  .btn-primary:disabled{background:#5a5470; color:#8b84a8; cursor:not-allowed; box-shadow:none;}
+  .btn-outline{background:transparent; color:var(--ink); border:1.5px solid var(--line);}
+  .btn-outline:hover{border-color:var(--ink-dim);}
+  .btn-block{width:100%;}
+  .btn-sm{padding:10px 16px; font-size:14px; border-radius:10px;}
+  .btn-danger{background:transparent; color:var(--coral); border:1.5px solid rgba(255,107,107,0.4);}
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .field label{font-size:14px; color:var(--ink-dim); font-weight:500;}
+  .field input[type=text]{
+    background:var(--bg-raised);
+    border:1.5px solid var(--line);
+    color:var(--ink);
+    padding:15px 16px;
+    border-radius:12px;
+    font-size:18px;
+  }
+  .field input[type=text]:focus{border-color:var(--amber);}
+  .field input.code-input{
+    letter-spacing:6px;
+    text-align:center;
+    font-family:'Fredoka',sans-serif;
+    font-size:26px;
+    text-transform:uppercase;
+  }
+
+  .error-msg{
+    background:rgba(255,107,107,0.12);
+    border:1px solid rgba(255,107,107,0.35);
+    color:#FFB3B3;
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:14px;
+    margin-bottom:16px;
+  }
+
+  .card{
+    background:var(--bg-raised);
+    border-radius:16px;
+    padding:20px;
+    border:1px solid var(--line);
+  }
+
+  /* ---------- puzzle-piece logo mark ---------- */
+  .logo-mark{
+    width:56px; height:56px;
+    position:relative;
+    margin-bottom:6px;
+  }
+  .logo-mark svg{width:100%; height:100%; display:block;}
+
+  .hero{
+    text-align:left;
+    padding-top:8px;
+    margin-bottom:36px;
+  }
+  .hero h1{
+    font-size:38px;
+    line-height:1.05;
+    letter-spacing:-0.5px;
+    margin:14px 0 10px;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--amber);
+  }
+  .hero p{
+    color:var(--ink-dim);
+    font-size:16px;
+    line-height:1.5;
+    max-width:420px;
+  }
+
+  .home-actions{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:auto;
+    padding-top:40px;
+  }
+
+  /* ---------- grid size picker ---------- */
+  .grid-options{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .grid-opt{
+    background:var(--bg-raised);
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    padding:14px 8px 12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    color:var(--ink);
+  }
+  .grid-opt.selected{border-color:var(--amber); background:var(--bg-raised-2);}
+  .mini-grid{
+    display:grid;
+    gap:2px;
+    width:38px;
+    height:38px;
+  }
+  .mini-grid div{background:var(--ink-dim); border-radius:2px;}
+  .grid-opt.selected .mini-grid div{background:var(--amber);}
+  .grid-opt .count{font-size:12px; color:var(--ink-dim); font-weight:600;}
+
+  /* ---------- image picker ---------- */
+  .image-options{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .image-opt{
+    aspect-ratio:1;
+    border-radius:14px;
+    border:2px solid transparent;
+    background-size:cover;
+    background-position:center;
+    overflow:hidden;
+    position:relative;
+  }
+  .image-opt.selected{border-color:var(--amber);}
+  .upload-tile{
+    aspect-ratio:1;
+    border-radius:14px;
+    border:1.5px dashed var(--line);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    color:var(--ink-dim);
+    font-size:13px;
+    font-weight:500;
+    grid-column:1 / -1;
+    padding:18px;
+  }
+  .upload-tile.selected{border-color:var(--amber); color:var(--amber);}
+  .upload-tile input{display:none;}
+
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:8px 0 26px;
+    color:var(--ink-dim);
+    font-size:15px;
+  }
+  .checkbox-row input{width:20px; height:20px; accent-color:var(--amber);}
+
+  .section-label{
+    font-size:13px;
+    color:var(--ink-dim);
+    font-weight:600;
+    margin-bottom:12px;
+  }
+
+  /* ---------- lobby ---------- */
+  .code-display{
+    text-align:center;
+    padding:30px 20px;
+    background:var(--bg-raised);
+    border-radius:20px;
+    margin-bottom:24px;
+  }
+  .code-display .label{color:var(--ink-dim); font-size:13px; margin-bottom:10px; font-weight:500;}
+  .code-display .code{
+    font-family:'Fredoka',sans-serif;
+    font-size:52px;
+    letter-spacing:10px;
+    color:var(--amber);
+    font-weight:700;
+  }
+  .code-display .hint{color:var(--ink-dim); font-size:13px; margin-top:10px;}
+
+  .player-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:24px;
+  }
+  .player-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--bg-raised);
+    padding:12px 14px;
+    border-radius:12px;
+  }
+  .player-dot{
+    width:10px; height:10px; border-radius:50%;
+    background:var(--mint);
+    flex-shrink:0;
+  }
+  .player-row .name{font-weight:600; flex:1;}
+  .player-row .piece-num{
+    font-size:12px;
+    color:var(--ink-dim);
+    background:rgba(255,255,255,0.06);
+    padding:3px 9px;
+    border-radius:20px;
+  }
+  .empty-note{color:var(--ink-dim); font-size:14px; text-align:center; padding:18px 0;}
+
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 0;
+    border-top:1px solid var(--line);
+    font-size:15px;
+    color:var(--ink-dim);
+  }
+  .switch{
+    position:relative; width:44px; height:26px;
+    background:var(--bg-raised-2); border-radius:20px;
+    flex-shrink:0; cursor:pointer;
+  }
+  .switch.on{background:var(--amber);}
+  .switch .knob{
+    position:absolute; top:3px; left:3px;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--ink); transition:left .15s ease;
+  }
+  .switch.on .knob{left:21px; background:var(--amber-ink);}
+
+  /* ---------- host game reference ---------- */
+  .ref-wrap{
+    position:relative;
+    border-radius:16px;
+    overflow:hidden;
+    margin-bottom:22px;
+    background:var(--bg-raised);
+  }
+  .ref-img{width:100%; display:block;}
+  .ref-grid{
+    position:absolute; inset:0;
+    display:grid;
+  }
+  .ref-cell{
+    border:1px solid rgba(255,255,255,0.55);
+    display:flex; align-items:flex-start; justify-content:flex-start;
+  }
+  .ref-cell span{
+    background:rgba(0,0,0,0.55);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 6px;
+    margin:3px;
+    border-radius:5px;
+    font-family:'Fredoka',sans-serif;
+  }
+
+  /* ---------- piece view (full bleed) ---------- */
+  #screen-piece{
+    background-size:cover;
+    background-position:center;
+    position:relative;
+  }
+  .piece-chip{
+    position:absolute;
+    top:20px; left:20px;
+    background:rgba(20,15,40,0.72);
+    backdrop-filter:blur(6px);
+    color:#fff;
+    padding:9px 14px;
+    border-radius:12px;
+    font-size:13px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .piece-chip .num{
+    background:var(--amber);
+    color:var(--amber-ink);
+    padding:2px 9px;
+    border-radius:8px;
+    font-family:'Fredoka',sans-serif;
+  }
+  .piece-leave{
+    position:absolute;
+    top:20px; right:20px;
+  }
+
+  .center-msg{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:16px;
+    padding:20px;
+  }
+  .center-msg .spinner{
+    width:34px; height:34px;
+    border-radius:50%;
+    border:3px solid var(--line);
+    border-top-color:var(--amber);
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .caption{color:var(--ink-dim); font-size:14px; line-height:1.5; max-width:320px;}
+
+  @media (prefers-reduced-motion: reduce){
+    .switch .knob, .btn{transition:none;}
+    .spinner{animation:none; border-top-color:var(--line);}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HOME ============ -->
+<div class="screen active" id="screen-home">
+  <div class="wrap">
+    <div class="hero">
+      <div class="logo-mark">
+        <svg viewBox="0 0 56 56" fill="none">
+          <path d="M20 8H28C29.1 8 30 8.9 30 10V15C30 16.1 30.9 17 32 17C33.1 17 34 16.1 34 15V10C34 8.9 34.9 8 36 8H44C45.1 8 46 8.9 46 10V18C46 19.1 45.1 20 44 20H39C37.9 20 37 20.9 37 22C37 23.1 37.9 24 39 24H44C45.1 24 46 24.9 46 26V34C46 35.1 45.1 36 44 36H36C34.9 36 34 35.1 34 34V29C34 27.9 33.1 27 32 27C30.9 27 30 27.9 30 29V34C30 35.1 29.1 36 28 36H10C8.9 36 8 35.1 8 34V26C8 24.9 8.9 24 10 24H15C16.1 24 17 23.1 17 22C17 20.9 16.1 20 15 20H10C8.9 20 8 19.1 8 18V10C8 8.9 8.9 8 10 8H18" stroke="#FFB020" stroke-width="3" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>Piece<br><em>Together.</em></h1>
+      <p>Every phone in the room becomes one piece of a picture. Pick an image, hand out the code, and rebuild it — together, screen by screen.</p>
+    </div>
+    <div class="home-actions">
+      <button class="btn btn-primary btn-block" onclick="go('host-setup')">Host a puzzle</button>
+      <button class="btn btn-outline btn-block" onclick="go('join-enter')">Join a puzzle</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HOST SETUP ============ -->
+<div class="screen" id="screen-host-setup">
+  <div class="topbar"><button class="back-btn" onclick="go('home')">← Back</button></div>
+  <div class="wrap">
+    <h2 style="font-size:26px; margin-bottom:24px;">Set up your puzzle</h2>
+
+    <div class="section-label">Choose a picture</div>
+    <div class="image-options" id="image-options"></div>
+    <label class="upload-tile" id="upload-tile">
+      <input type="file" accept="image/*" id="file-input" onchange="handleUpload(event)">
+      <span>📷 Upload your own photo</span>
+      <span id="upload-status" style="font-size:12px;"></span>
+    </label>
+
+    <div style="height:26px;"></div>
+    <div class="section-label">How many pieces?</div>
+    <div class="grid-options" id="grid-options"></div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" id="host-piece-check" onchange="hostHasPiece=this.checked">
+      I'll hold a piece on this device too
+    </label>
+
+    <div id="setup-error"></div>
+    <button class="btn btn-primary btn-block" onclick="createRoom()">Create room</button>
+  </div>
+</div>
+
+<!-- ============ HOST LOBBY ============ -->
+<div class="screen" id="screen-host-lobby">
+  <div class="topbar"><button class="back-btn" onclick="leaveAndGoHome()">✕ Cancel</button></div>
+  <div class="wrap">
+    <div class="code-display">
+      <div class="label">Room code</div>
+      <div class="code" id="lobby-code">----</div>
+      <div class="hint">Share this code — everyone joins at the same link</div>
+    </div>
+
+    <div class="section-label" id="lobby-count">Waiting for players…</div>
+    <div class="player-list" id="lobby-players"></div>
+
+    <div class="card" style="margin-bottom:22px;">
+      <div class="toggle-row" style="border-top:none; padding-top:0;">
+        <span>Show piece numbers to players</span>
+        <div class="switch on" id="numbers-switch" onclick="toggleNumbers()"><div class="knob"></div></div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-block" id="start-btn" onclick="startPuzzle()" disabled>Start puzzle</button>
+  </div>
+</div>
+
+<!-- ============ HOST GAME (reference view) ============ -->
+<div class="screen" id="screen-host-game">
+  <div class="topbar"><button class="back-btn" onclick="endGame()">End puzzle</button></div>
+  <div class="wrap">
+    <h2 style="font-size:22px; margin-bottom:6px;">Reference view</h2>
+    <p class="caption" style="margin-bottom:18px;">Only your device shows this — use it to help players find their spot.</p>
+    <div class="ref-wrap">
+      <img class="ref-img" id="ref-img">
+      <div class="ref-grid" id="ref-grid"></div>
+    </div>
+    <div class="section-label">Who has which piece</div>
+    <div class="player-list" id="game-players"></div>
+  </div>
+</div>
+
+<!-- ============ JOIN: ENTER CODE ============ -->
+<div class="screen" id="screen-join-enter">
+  <div class="topbar"><button class="back-btn" onclick="go('home')">← Back</button></div>
+  <div class="wrap">
+    <h2 style="font-size:26px; margin-bottom:24px;">Join a puzzle</h2>
+    <div id="join-error"></div>
+    <div class="field">
+      <label for="join-name">Your name</label>
+      <input type="text" id="join-name" placeholder="e.g. Sam" maxlength="20">
+    </div>
+    <div class="field">
+      <label for="join-code">Room code</label>
+      <input type="text" id="join-code" class="code-input" placeholder="ABCD" maxlength="4">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="joinRoom()">Join</button>
+  </div>
+</div>
+
+<!-- ============ JOIN: WAITING ============ -->
+<div class="screen" id="screen-join-waiting">
+  <div class="topbar"><button class="back-btn" onclick="leaveAndGoHome()">✕ Leave</button></div>
+  <div class="center-msg">
+    <div class="spinner"></div>
+    <h3 style="font-size:20px;">You're in!</h3>
+    <p class="caption">Waiting for the host to start the puzzle…</p>
+    <div class="player-list" id="waiting-players" style="width:100%; max-width:320px; margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- ============ JOIN: PIECE VIEW ============ -->
+<div class="screen" id="screen-piece">
+  <div class="piece-chip" id="piece-chip" style="display:none;">
+    <span class="num" id="piece-num"></span>
+    <span id="piece-player-name"></span>
+  </div>
+  <button class="btn btn-danger btn-sm piece-leave" onclick="leaveAndGoHome()">Leave</button>
+  <div class="center-msg" id="piece-empty-msg" style="display:none;">
+    <h3 style="font-size:20px;">No piece this round</h3>
+    <p class="caption">More players joined than there were pieces — you're a spare! Ask the host to start a new puzzle.</p>
+  </div>
+</div>
+
+<script>
+/* ================= state ================= */
+const myId = randId();
+let myName = '';
+let myRoomCode = '';
+let isHost = false;
+let hostHasPiece = false;
+let pollTimer = null;
+let selectedImageData = null;
+let selectedGrid = null;
+
+const GRID_OPTIONS = [
+  {rows:2, cols:2}, {rows:2, cols:3}, {rows:3, cols:3},
+  {rows:3, cols:4}, {rows:4, cols:4}, {rows:4, cols:5}, {rows:5, cols:5}
+];
+
+/* ================= helpers ================= */
+function $(id){ return document.getElementById(id); }
+function randId(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+function randCode(){
+  const chars = 'ABCDEFGHJKLMNPRSTUVWXYZ';
+  let out = '';
+  for(let i=0;i<4;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('screen-'+name).classList.add('active');
+}
+function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
+function leaveAndGoHome(){
+  stopPolling();
+  isHost = false; myRoomCode=''; selectedImageData=null; selectedGrid=null; hostHasPiece=false;
+  $('setup-error').innerHTML=''; $('join-error').innerHTML='';
+  $('host-piece-check').checked=false;
+  go('home');
+}
+
+async function getRoom(code){
+  try{
+    const r = await window.storage.get('puzzle-room:'+code, true);
+    return r ? JSON.parse(r.value) : null;
+  }catch(e){ return null; }
+}
+async function setRoom(code, data){
+  try{
+    await window.storage.set('puzzle-room:'+code, JSON.stringify(data), true);
+    return true;
+  }catch(e){ console.error('storage set failed', e); return false; }
+}
+function sleep(ms){ return new Promise(res=>setTimeout(res,ms)); }
+
+/* ================= pattern presets (no upload needed) ================= */
+function generatePattern(seed){
+  const canvas = document.createElement('canvas');
+  canvas.width = 640; canvas.height = 640;
+  const ctx = canvas.getContext('2d');
+  const palettes = [
+    ['#FF6B6B','#FFB020','#4ADE80','#3B82F6'],
+    ['#A78BFA','#F472B6','#FBBF24','#34D399'],
+    ['#F97316','#EF4444','#8B5CF6','#14B8A6'],
+    ['#06B6D4','#6366F1','#EC4899','#84CC16']
+  ];
+  const pal = palettes[seed % palettes.length];
+  ctx.fillStyle = pal[0]; ctx.fillRect(0,0,640,640);
+  let rnd = seed*9973;
+  function rand(){ rnd = (rnd*16807)%2147483647; return rnd/2147483647; }
+  for(let i=0;i<26;i++){
+    ctx.fillStyle = pal[Math.floor(rand()*pal.length)];
+    ctx.globalAlpha = 0.85;
+    const shape = Math.floor(rand()*3);
+    const x = rand()*640, y = rand()*640, s = 60+rand()*220;
+    if(shape===0){ ctx.beginPath(); ctx.arc(x,y,s/2,0,Math.PI*2); ctx.fill(); }
+    else if(shape===1){ ctx.save(); ctx.translate(x,y); ctx.rotate(rand()*Math.PI); ctx.fillRect(-s/2,-s/2,s,s); ctx.restore(); }
+    else { ctx.beginPath(); ctx.moveTo(x,y-s/2); ctx.lineTo(x+s/2,y+s/2); ctx.lineTo(x-s/2,y+s/2); ctx.closePath(); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+  return canvas.toDataURL('image/jpeg', 0.85);
+}
+const patternThumbs = [0,1,2,3].map(generatePattern);
+
+function renderImageOptions(){
+  const wrap = $('image-options');
+  wrap.innerHTML = '';
+  patternThumbs.forEach((data,i)=>{
+    const div = document.createElement('div');
+    div.className = 'image-opt';
+    div.style.backgroundImage = `url(${data})`;
+    div.onclick = ()=>{
+      selectedImageData = data;
+      document.querySelectorAll('.image-opt').forEach(el=>el.classList.remove('selected'));
+      $('upload-tile').classList.remove('selected');
+      $('upload-status').textContent='';
+      div.classList.add('selected');
+    };
+    wrap.appendChild(div);
+  });
+}
+
+function handleUpload(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      const maxDim = 1000;
+      let w = img.width, h = img.height;
+      if(w > h && w > maxDim){ h = h*(maxDim/w); w = maxDim; }
+      else if(h > maxDim){ w = w*(maxDim/h); h = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      selectedImageData = canvas.toDataURL('image/jpeg', 0.72);
+      document.querySelectorAll('.image-opt').forEach(el=>el.classList.remove('selected'));
+      $('upload-tile').classList.add('selected');
+      $('upload-status').textContent = '✓ Photo ready';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderGridOptions(){
+  const wrap = $('grid-options');
+  wrap.innerHTML = '';
+  GRID_OPTIONS.forEach(opt=>{
+    const div = document.createElement('div');
+    div.className = 'grid-opt';
+    const mini = document.createElement('div');
+    mini.className = 'mini-grid';
+    mini.style.gridTemplateColumns = `repeat(${opt.cols}, 1fr)`;
+    mini.style.gridTemplateRows = `repeat(${opt.rows}, 1fr)`;
+    for(let i=0;i<opt.rows*opt.cols;i++){ mini.appendChild(document.createElement('div')); }
+    const label = document.createElement('div');
+    label.className = 'count';
+    label.textContent = `${opt.rows*opt.cols} pieces`;
+    div.appendChild(mini);
+    div.appendChild(label);
+    div.onclick = ()=>{
+      selectedGrid = opt;
+      document.querySelectorAll('.grid-opt').forEach(el=>el.classList.remove('selected'));
+      div.classList.add('selected');
+    };
+    wrap.appendChild(div);
+  });
+}
+
+/* ================= host: create room ================= */
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderImageOptions();
+  renderGridOptions();
+});
+
+// re-init when navigating to host-setup fresh (in case selections should reset)
+function openHostSetup(){
+  selectedImageData = null; selectedGrid = null; hostHasPiece=false;
+  $('host-piece-check').checked = false;
+  document.querySelectorAll('.image-opt,.upload-tile,.grid-opt').forEach(el=>el.classList.remove('selected'));
+  $('setup-error').innerHTML = '';
+  go('host-setup');
+}
+
+async function createRoom(){
+  $('setup-error').innerHTML = '';
+  if(!selectedImageData){ $('setup-error').innerHTML = '<div class="error-msg">Pick a picture first.</div>'; return; }
+  if(!selectedGrid){ $('setup-error').innerHTML = '<div class="error-msg">Choose how many pieces.</div>'; return; }
+
+  let code = randCode();
+  for(let i=0;i<5;i++){
+    const existing = await getRoom(code);
+    if(!existing) break;
+    code = randCode();
+  }
+
+  const players = [];
+  if(hostHasPiece){
+    players.push({id: myId, name: 'Host', pieceIndex: null, joinedAt: Date.now()});
+  }
+
+  const room = {
+    code, rows: selectedGrid.rows, cols: selectedGrid.cols,
+    imageData: selectedImageData, hostId: myId,
+    createdAt: Date.now(), started: false, showNumbers: true,
+    players
+  };
+  const ok = await setRoom(code, room);
+  if(!ok){ $('setup-error').innerHTML = '<div class="error-msg">Could not create the room. Try again.</div>'; return; }
+
+  isHost = true; myRoomCode = code;
+  $('lobby-code').textContent = code;
+  go('host-lobby');
+  renderLobby(room);
+  stopPolling();
+  pollTimer = setInterval(pollHostLobby, 2000);
+}
+
+async function pollHostLobby(){
+  const room = await getRoom(myRoomCode);
+  if(!room) return;
+  if(room.started){ stopPolling(); enterHostGame(room); return; }
+  renderLobby(room);
+}
+
+function renderLobby(room){
+  $('lobby-count').textContent = room.players.length === 0
+    ? 'Waiting for players…'
+    : `${room.players.length} of ${room.rows*room.cols} pieces claimed`;
+  const list = $('lobby-players');
+  list.innerHTML = '';
+  if(room.players.length === 0){
+    list.innerHTML = '<div class="empty-note">Share the code — players will show up here.</div>';
+  } else {
+    room.players.forEach(p=>{
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      row.innerHTML = `<div class="player-dot"></div><div class="name">${escapeHtml(p.name)}</div>`;
+      list.appendChild(row);
+    });
+  }
+  $('start-btn').disabled = room.players.length === 0;
+  const sw = $('numbers-switch');
+  sw.classList.toggle('on', room.showNumbers);
+}
+
+async function toggleNumbers(){
+  const room = await getRoom(myRoomCode);
+  if(!room) return;
+  room.showNumbers = !room.showNumbers;
+  await setRoom(myRoomCode, room);
+  renderLobby(room);
+}
+
+async function startPuzzle(){
+  const room = await getRoom(myRoomCode);
+  if(!room || room.players.length===0) return;
+  const shuffled = [...room.players];
+  for(let i=shuffled.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [shuffled[i],shuffled[j]] = [shuffled[j],shuffled[i]];
+  }
+  const totalPieces = room.rows*room.cols;
+  shuffled.forEach((p,i)=>{ p.pieceIndex = i < totalPieces ? i : null; });
+  room.players = shuffled;
+  room.started = true;
+  await setRoom(myRoomCode, room);
+  enterHostGame(room);
+}
+
+function enterHostGame(room){
+  go('host-game');
+  $('ref-img').src = room.imageData;
+  const grid = $('ref-grid');
+  grid.style.gridTemplateColumns = `repeat(${room.cols}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${room.rows}, 1fr)`;
+  grid.innerHTML = '';
+  for(let i=0;i<room.rows*room.cols;i++){
+    const cell = document.createElement('div');
+    cell.className = 'ref-cell';
+    cell.innerHTML = `<span>${i+1}</span>`;
+    grid.appendChild(cell);
+  }
+  renderGamePlayers(room);
+  stopPolling();
+  pollTimer = setInterval(async ()=>{
+    const r = await getRoom(myRoomCode);
+    if(r) renderGamePlayers(r);
+  }, 2000);
+}
+
+function renderGamePlayers(room){
+  const list = $('game-players');
+  list.innerHTML = '';
+  const sorted = [...room.players].sort((a,b)=>(a.pieceIndex??999)-(b.pieceIndex??999));
+  sorted.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    const numLabel = p.pieceIndex===null ? 'no piece' : `#${p.pieceIndex+1}`;
+    row.innerHTML = `<div class="player-dot"></div><div class="name">${escapeHtml(p.name)}</div><div class="piece-num">${numLabel}</div>`;
+    list.appendChild(row);
+  });
+}
+
+function endGame(){
+  stopPolling();
+  leaveAndGoHome();
+}
+
+/* ================= join flow ================= */
+async function joinRoom(){
+  $('join-error').innerHTML = '';
+  const name = $('join-name').value.trim();
+  const code = $('join-code').value.trim().toUpperCase();
+  if(!name){ $('join-error').innerHTML = '<div class="error-msg">Enter your name.</div>'; return; }
+  if(code.length !== 4){ $('join-error').innerHTML = '<div class="error-msg">Room codes are 4 letters.</div>'; return; }
+
+  let room = await getRoom(code);
+  if(!room){ $('join-error').innerHTML = '<div class="error-msg">No room found with that code.</div>'; return; }
+  if(room.started){ $('join-error').innerHTML = '<div class="error-msg">That puzzle already started.</div>'; return; }
+  if(room.players.length >= room.rows*room.cols){ $('join-error').innerHTML = '<div class="error-msg">That room is full.</div>'; return; }
+
+  myName = name; myRoomCode = code; isHost = false;
+
+  let joined = false;
+  for(let attempt=0; attempt<3 && !joined; attempt++){
+    const fresh = await getRoom(code);
+    if(!fresh){ break; }
+    if(!fresh.players.find(p=>p.id===myId)){
+      fresh.players.push({id: myId, name: myName, pieceIndex: null, joinedAt: Date.now()});
+      await setRoom(code, fresh);
+    }
+    await sleep(350 + attempt*200);
+    const check = await getRoom(code);
+    if(check && check.players.find(p=>p.id===myId)){ joined = true; }
+  }
+  if(!joined){ $('join-error').innerHTML = '<div class="error-msg">Room is busy, try joining again.</div>'; return; }
+
+  go('join-waiting');
+  stopPolling();
+  pollTimer = setInterval(pollJoinWaiting, 2000);
+  pollJoinWaiting();
+}
+
+async function pollJoinWaiting(){
+  const room = await getRoom(myRoomCode);
+  if(!room) return;
+  const me = room.players.find(p=>p.id===myId);
+  if(!me) return;
+  if(room.started){
+    stopPolling();
+    enterPieceView(room, me);
+    return;
+  }
+  const list = $('waiting-players');
+  list.innerHTML = '';
+  room.players.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `<div class="player-dot"></div><div class="name">${escapeHtml(p.name)}${p.id===myId ? ' (you)' : ''}</div>`;
+    list.appendChild(row);
+  });
+}
+
+function enterPieceView(room, me){
+  go('piece');
+  const screen = $('screen-piece');
+  if(me.pieceIndex === null){
+    screen.style.backgroundImage = 'none';
+    $('piece-chip').style.display = 'none';
+    $('piece-empty-msg').style.display = 'flex';
+    return;
+  }
+  $('piece-empty-msg').style.display = 'none';
+  const row = Math.floor(me.pieceIndex / room.cols);
+  const col = me.pieceIndex % room.cols;
+  const xPct = room.cols > 1 ? (col/(room.cols-1))*100 : 50;
+  const yPct = room.rows > 1 ? (row/(room.rows-1))*100 : 50;
+  screen.style.backgroundImage = `url(${room.imageData})`;
+  screen.style.backgroundSize = `${room.cols*100}% ${room.rows*100}%`;
+  screen.style.backgroundPosition = `${xPct}% ${yPct}%`;
+  screen.style.backgroundRepeat = 'no-repeat';
+
+  if(room.showNumbers){
+    $('piece-chip').style.display = 'flex';
+    $('piece-num').textContent = '#' + (me.pieceIndex+1);
+    $('piece-player-name').textContent = me.name;
+  } else {
+    $('piece-chip').style.display = 'none';
+  }
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* wire up the host-setup nav button to reset state each time */
+document.querySelector('[onclick="go(\'host-setup\')"]').setAttribute('onclick','openHostSetup()');
+</script>
+</body>
+</html>
