@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rhythm Repeat — Sound Edition</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5efe3;color:#182b3d;font-family:system-ui,sans-serif}
+#app{width:min(760px,94vw);background:#fffdf8;border:4px solid #182b3d;border-radius:28px;box-shadow:0 10px 0 #182b3d;overflow:hidden}
+header{padding:18px 24px;border-bottom:3px solid #182b3d;display:flex;justify-content:space-between}
+h1{margin:0;font-size:clamp(28px,6vw,46px);letter-spacing:-2px}.score{font-weight:900}
+main{padding:28px}.screen{display:none;text-align:center;min-height:500px;align-items:center;justify-content:center;flex-direction:column}.active{display:flex}
+.emoji{font-size:90px;margin:10px}.big{font-size:70px;font-weight:1000}.sub{max-width:560px;font-size:18px;line-height:1.5}
+button{background:#182b3d;color:#fff;border:0;border-radius:16px;padding:16px 28px;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 5px 0 #0d1720;margin:8px}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 #0d1720}
+#stage{width:min(620px,100%);border:4px solid #182b3d;border-radius:24px;padding:24px}
+.mode{font-size:25px;font-weight:900}.message{min-height:70px;font-size:25px;font-weight:900;padding:15px}
+.bars{display:flex;gap:12px;justify-content:center;align-items:end;height:150px;margin:15px}
+.bar{width:35px;border:3px solid #182b3d;border-radius:10px 10px 4px 4px;background:#ffda58;transform-origin:bottom}
+.bar.hit{animation:hit .16s ease}.bar.bad{background:#f5a4a4;animation:shake .2s linear 2}
+@keyframes hit{50%{height:100%;transform:scale(1.15)}}@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#phaseText{font-size:18px;min-height:28px}.meter{height:15px;background:#dce1e4;border:3px solid #182b3d;border-radius:20px;overflow:hidden}.fill{height:100%;width:0;background:#7ed7c1}
+.space{font-size:28px;padding:18px 55px;background:#fff;color:#182b3d;border:4px solid #182b3d;box-shadow:0 5px 0 #182b3d}
+.result{font-size:24px;margin:8px}.tiny{opacity:.65;font-size:14px}
+</style>
+</head>
+<body>
+<div id="app">
+<header><h1>RHYTHM REPEAT!</h1><div class="score" id="score">0 / 12</div></header>
+<main>
+<section id="start" class="screen active">
+<div class="emoji">🥁</div>
+<div class="big">Listen. Repeat.</div>
+<p class="sub">There is no visual rhythm to follow. <b>Listen to the sound pattern</b>, then reproduce it using only the SPACE bar.</p>
+<p class="sub">The visual is there only to make the consequences funny.</p>
+<button onclick="begin()">PRESS SPACE TO START</button>
+</section>
+
+<section id="game" class="screen">
+<div id="stage">
+<div class="mode" id="mode"></div>
+<div class="message" id="message">Listen...</div>
+<div class="bars" id="bars"></div>
+<div id="phaseText"></div>
+<div class="meter"><div class="fill" id="fill"></div></div>
+<br>
+<button class="space" id="space">SPACE</button>
+<div class="tiny">Keyboard: SPACE</div>
+</div>
+</section>
+
+<section id="result" class="screen">
+<div class="emoji">🎉</div>
+<div class="big" id="final">0 / 12</div>
+<p class="sub" id="finalText"></p>
+<button onclick="begin()">TRY AGAIN</button>
+</section>
+</main>
+</div>
+
+<script>
+const levels=[
+ {name:"TOAST",emoji:"🍞",pattern:[0,420,420],intro:"Listen to the toaster...",perfect:"The toast is impressed.",early:"WHY ARE YOU SO EXCITED?",late:"The toast has given up."},
+ {name:"NOODLE",emoji:"🍜",pattern:[0,620,260],intro:"Listen to the slurp...",perfect:"That's the noodle spirit.",early:"Too eager. The noodle is judging you.",late:"The noodle escaped."},
+ {name:"DOOR",emoji:"🚪",pattern:[0,520,520,260],intro:"Listen to the knock...",perfect:"Perfectly polite.",early:"Nobody was ready for that.",late:"The door has lost patience."},
+ {name:"SNEEZE",emoji:"🤧",pattern:[0,700,560,220],intro:"Listen very carefully...",perfect:"You're a sneeze professional.",early:"NOT YET!",late:"You missed the sneeze... and the mess."}
+];
+let level=0,target=[],player=[],startT=0,phase="idle",points=0,timers=[];
+
+function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function tone(freq=440,d=.08){
+ const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+ const c=new C(),o=c.createOscillator(),g=c.createGain();o.type="triangle";o.frequency.value=freq;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.08,c.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d+.02);
+}
+function startSound(i){
+ const freqs=[300,420,520,660];
+ tone(freqs[i],.09);
+}
+function begin(){
+ timers.forEach(clearTimeout);timers=[];level=0;points=0;document.getElementById("score").textContent="0 / 12";show("game");playLevel();
+}
+function makeBars(){
+ document.getElementById("bars").innerHTML=levels[level].pattern.map((_,i)=>`<div class="bar" style="height:${35+i*15}px"></div>`).join("");
+}
+function playLevel(){
+ const L=levels[level];phase="demo";player=[];target=[];
+ document.getElementById("mode").textContent=`${L.emoji} ${L.name}`;
+ document.getElementById("message").textContent=L.intro;
+ document.getElementById("phaseText").textContent="LISTEN...";
+ document.getElementById("fill").style.width="0";makeBars();
+ let t=450;
+ L.pattern.forEach((gap,i)=>{
+   t+=gap;
+   timers.push(setTimeout(()=>{
+     startSound(i);flash(i);
+   },t));
+ });
+ timers.push(setTimeout(()=>{
+   target=L.pattern.map((_,i)=>L.pattern.slice(0,i+1).reduce((a,b)=>a+b,0));
+   target=target.map(x=>x-target[0]);
+   startT=performance.now();phase="play";
+   document.getElementById("message").textContent="Your turn. Copy what you heard!";
+   document.getElementById("phaseText").textContent="PRESS SPACE IN THE SAME RHYTHM";
+   requestAnimationFrame(loop);
+ },t+650));
+}
+function flash(i){
+ const b=document.querySelectorAll(".bar")[i];if(!b)return;b.classList.remove("hit");void b.offsetWidth;b.classList.add("hit");
+}
+function loop(){
+ if(phase!=="play")return;
+ const elapsed=performance.now()-startT,total=target[target.length-1]+600;
+ document.getElementById("fill").style.width=Math.min(100,elapsed/total*100)+"%";
+ if(elapsed>total){finish();return}requestAnimationFrame(loop);
+}
+function press(){
+ if(phase!=="play")return;
+ const now=performance.now()-startT;
+ const idx=player.length;
+ if(idx>=target.length)return;
+ player.push(now);tone(600,.05);flash(idx);
+ const diff=now-target[idx],good=Math.abs(diff)<=145;
+ if(good){points++;document.getElementById("message").textContent=levels[level].perfect}
+ else document.getElementById("message").textContent=diff<0?levels[level].early:levels[level].late;
+ document.getElementById("score").textContent=`${points} / ${level*3+Math.min(player.length,3)}`;
+ if(player.length===target.length)timers.push(setTimeout(finish,500));
+}
+function finish(){
+ if(phase!=="play")return;phase="done";
+ document.getElementById("score").textContent=`${points} / 12`;
+ timers.push(setTimeout(()=>{
+   if(level<levels.length-1){level++;playLevel()}else end();
+ },850));
+}
+function end(){
+ const total=points;show("result");document.getElementById("final").textContent=`${total} / 12`;
+ document.getElementById("finalText").textContent=total===12?"Perfect. You have achieved complete control over SPACE.":total>=9?"Very good. The toaster, noodle, door and sneeze all respect you.":total>=6?"Acceptable human. Your rhythm has potential.":"Your brain has left the building. Please retrieve it and try again.";
+}
+document.getElementById("space").onclick=press;
+window.addEventListener("keydown",e=>{
+ if(e.code==="Space"){e.preventDefault();if(document.getElementById("start").classList.contains("active"))begin();else press()}
+});
+</script>
+</body>
+</html>
