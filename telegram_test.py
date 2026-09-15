@@ -1,8 +1,8 @@
 import requests
 
 # Fill in your credentials
-TELEGRAM_BOT_TOKEN = "8689218849:AAHxsqrLucH7pQLM-RH7LOEZou_cWF0vIyI"
-TELEGRAM_CHAT_ID = "2142044178"
+TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
 url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
