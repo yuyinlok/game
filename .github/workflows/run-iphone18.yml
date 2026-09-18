@@ -2,7 +2,7 @@ name: Run my iphone18 monitor
 
 on:
   schedule:
-    - cron: '59 7 * 9 *'
+    - cron: '58 7 * 9 *'
       timezone: 'Asia/Hong_Kong'
   workflow_dispatch:
 
