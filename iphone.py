@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 
 # Fill in your Telegram details
@@ -6,8 +7,8 @@ TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
  
 # Target Details
-TARGET_MODEL_CODE = "MYWX3ZA/A"  # iPhone 18 Pro Silver 256GB
-TARGET_MODEL_NAME = "iPhone 18 Pro 256GB Silver"
+TARGET_MODEL_CODE = "MJRR4ZA/A"  # iPhone 18 Pro Burgundy 256GB
+TARGET_MODEL_NAME = "iPhone 18 Pro 256GB Burgundy"
  
 HK_STORES = {
     "R428": "Central (ifc mall)",
