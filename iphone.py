@@ -1,7 +1,6 @@
 import os
-import time
 import requests
- 
+
 # Fill in your Telegram details
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
